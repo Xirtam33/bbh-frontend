@@ -274,7 +274,7 @@
             margin-top: 10px;
         }
 
-        /* Dashboard (inicialmente escondido) */
+        /* Dashboard */
         #mainDashboard {
             display: none;
         }
@@ -1003,178 +1003,101 @@
     </div>
 
     <script>
-        // URLs da API (serão atualizadas quando backend estiver pronto)
-        const API_BASE_URL = 'https://api.bricsbusinesshub.com.br/api';
-        
-        // Sistema de Autenticação
-        class AuthSystem {
-            constructor() {
-                this.currentUser = null;
-                this.users = JSON.parse(localStorage.getItem('bbh_users')) || [];
-                this.init();
+        // SISTEMA DE AUTENTICAÇÃO SIMPLIFICADO E FUNCIONAL
+        console.log("🚀 BBH Business Hub Carregado!");
+
+        // Dados de usuários
+        const users = [
+            {
+                email: "demo@bbh.com",
+                password: "123456",
+                name: "João Silva",
+                companyName: "Tech Solutions BR"
             }
+        ];
 
-            init() {
-                const savedUser = localStorage.getItem('bbh_currentUser');
-                if (savedUser) {
-                    this.currentUser = JSON.parse(savedUser);
-                    this.showDashboard();
-                }
-            }
+        // Elementos DOM
+        const loginSection = document.getElementById('loginSection');
+        const mainDashboard = document.getElementById('mainDashboard');
+        const loginForm = document.getElementById('loginForm');
+        const userName = document.getElementById('userName');
+        const userCompany = document.getElementById('userCompany');
 
-            async login(email, password) {
-                try {
-                    // Tentar login com API real primeiro
-                    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.currentUser = data.user;
-                        localStorage.setItem('bbh_currentUser', JSON.stringify(data.user));
-                        localStorage.setItem('bbh_token', data.token);
-                        this.showDashboard();
-                        return true;
-                    }
-                } catch (error) {
-                    console.log('API offline, usando sistema local');
-                }
-
-                // Fallback para sistema local
-                const user = this.users.find(u => u.email === email && u.password === password);
-                if (user) {
-                    this.currentUser = user;
-                    localStorage.setItem('bbh_currentUser', JSON.stringify(user));
-                    this.showDashboard();
-                    return true;
-                }
-                return false;
-            }
-
-            async register(userData) {
-                try {
-                    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(userData)
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.currentUser = data.user;
-                        localStorage.setItem('bbh_currentUser', JSON.stringify(data.user));
-                        localStorage.setItem('bbh_token', data.token);
-                        this.showDashboard();
-                        return true;
-                    } else {
-                        const errorData = await response.json();
-                        alert(errorData.message || 'Erro no cadastro');
-                        return false;
-                    }
-                } catch (error) {
-                    console.log('API offline, usando sistema local');
-                }
-
-                // Fallback para sistema local
-                if (this.users.find(u => u.email === userData.email)) {
-                    return false;
-                }
-
-                const newUser = {
-                    id: Date.now(),
-                    ...userData,
-                    createdAt: new Date().toISOString()
-                };
-
-                this.users.push(newUser);
-                localStorage.setItem('bbh_users', JSON.stringify(this.users));
-                this.currentUser = newUser;
-                localStorage.setItem('bbh_currentUser', JSON.stringify(newUser));
-                this.showDashboard();
-                return true;
-            }
-
-            logout() {
-                this.currentUser = null;
-                localStorage.removeItem('bbh_currentUser');
-                localStorage.removeItem('bbh_token');
-                this.showLogin();
-            }
-
-            showDashboard() {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('mainDashboard').style.display = 'block';
+        // Função de Login - CORRIGIDA
+        function handleLogin(email, password) {
+            console.log("🔐 Tentando login:", email);
+            
+            // Verificar credenciais
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                console.log("✅ Login bem-sucedido!");
                 
-                if (this.currentUser) {
-                    document.getElementById('userName').textContent = this.currentUser.name || 'Usuário BBH';
-                    document.getElementById('userCompany').textContent = this.currentUser.companyName || 'Empresa BBH';
-                }
-            }
-
-            showLogin() {
-                document.getElementById('loginSection').style.display = 'flex';
-                document.getElementById('mainDashboard').style.display = 'none';
+                // Mostrar dashboard e esconder login
+                loginSection.style.display = 'none';
+                mainDashboard.style.display = 'block';
+                
+                // Atualizar informações do usuário
+                userName.textContent = user.name;
+                userCompany.textContent = user.companyName;
+                
+                alert('Login realizado com sucesso! 🎉');
+                return true;
+            } else {
+                console.log("❌ Login falhou");
+                alert('E-mail ou senha incorretos! Tente: demo@bbh.com / 123456');
+                return false;
             }
         }
 
-        // Inicializar sistema
-        const auth = new AuthSystem();
+        // Função de Logout
+        function handleLogout() {
+            if (confirm('Deseja realmente sair do dashboard?')) {
+                loginSection.style.display = 'flex';
+                mainDashboard.style.display = 'none';
+                loginForm.reset();
+            }
+        }
 
-        // Formulário de login
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        // Função de Registro
+        function showRegister() {
+            const companyName = prompt('Nome da Empresa:');
+            const email = prompt('E-mail Corporativo:');
+            const password = prompt('Senha:');
+            const name = prompt('Seu Nome:');
+            
+            if (companyName && email && password && name) {
+                // Adicionar novo usuário
+                users.push({
+                    email: email,
+                    password: password,
+                    name: name,
+                    companyName: companyName
+                });
+                
+                // Fazer login automaticamente
+                handleLogin(email, password);
+                alert('Empresa cadastrada com sucesso! 🎉\nBem-vindo ao BRICS Business Hub!');
+            }
+        }
+
+        // Event Listener do Formulário - CORRIGIDO
+        loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            console.log("📝 Formulário submetido");
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            if (await auth.login(email, password)) {
-                alert('Login realizado com sucesso! 🎉');
-            } else {
-                alert('E-mail ou senha incorretos. Tente novamente.');
-            }
+            handleLogin(email, password);
         });
 
-        // Funções de recuperação de senha
-        async function sendRecoveryEmail() {
-            const email = document.getElementById('recoveryEmail').value;
-            
-            if (!email) {
-                alert('Por favor, digite seu e-mail.');
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('sentEmail').textContent = email;
-                    document.getElementById('forgotPasswordModal').style.display = 'none';
-                    document.getElementById('recoverySentModal').style.display = 'block';
-                } else {
-                    alert(data.message || 'Erro ao enviar e-mail. Tente novamente.');
-                }
-            } catch (error) {
-                // Fallback para simulação
-                document.getElementById('sentEmail').textContent = email;
-                document.getElementById('forgotPasswordModal').style.display = 'none';
-                document.getElementById('recoverySentModal').style.display = 'block';
-                console.log('📧 E-mail simulado (API offline): ' + email);
-            }
-        }
-
+        // Funções dos Modais
         function showForgotPassword() {
-            document.getElementById('forgotPasswordModal').style.display = 'block';
-            document.getElementById('recoveryEmail').value = '';
-            document.getElementById('recoveryEmail').focus();
+            const email = prompt('Digite seu e-mail para recuperação:');
+            if (email) {
+                alert(`📧 Instruções de recuperação enviadas para: ${email}\n(Em produção, um e-mail real seria enviado)`);
+            }
         }
 
         function closeForgotPassword() {
@@ -1185,53 +1108,36 @@
             document.getElementById('recoverySentModal').style.display = 'none';
         }
 
-        // Função de registro
-        function showRegister() {
-            const companyName = prompt('Nome da Empresa:');
-            const email = prompt('E-mail Corporativo:');
-            const password = prompt('Senha:');
-            const name = prompt('Seu Nome:');
-            
-            if (companyName && email && password && name) {
-                if (auth.register({
-                    name: name,
-                    email: email,
-                    password: password,
-                    companyName: companyName
-                })) {
-                    alert('Empresa cadastrada com sucesso! 🎉\nBem-vindo ao BRICS Business Hub!');
-                } else {
-                    alert('Este e-mail já está cadastrado.');
-                }
+        function sendRecoveryEmail() {
+            const email = document.getElementById('recoveryEmail').value;
+            if (email) {
+                document.getElementById('sentEmail').textContent = email;
+                document.getElementById('forgotPasswordModal').style.display = 'none';
+                document.getElementById('recoverySentModal').style.display = 'block';
             }
         }
 
-        // Função de logout
-        function handleLogout() {
-            if (confirm('Deseja realmente sair do dashboard?')) {
-                auth.logout();
-            }
-        }
-
-        // Sistema de visualização
+        // Sistema de visualização do dashboard
         const gridViewBtn = document.getElementById('gridViewBtn');
         const listViewBtn = document.getElementById('listViewBtn');
         const gridView = document.getElementById('gridView');
         const listView = document.getElementById('listView');
 
-        gridViewBtn.addEventListener('click', () => {
-            gridViewBtn.classList.add('active');
-            listViewBtn.classList.remove('active');
-            gridView.style.display = 'grid';
-            listView.style.display = 'none';
-        });
+        if (gridViewBtn && listViewBtn) {
+            gridViewBtn.addEventListener('click', () => {
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                if (gridView) gridView.style.display = 'grid';
+                if (listView) listView.style.display = 'none';
+            });
 
-        listViewBtn.addEventListener('click', () => {
-            listViewBtn.classList.add('active');
-            gridViewBtn.classList.remove('active');
-            listView.style.display = 'block';
-            gridView.style.display = 'none';
-        });
+            listViewBtn.addEventListener('click', () => {
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+                if (listView) listView.style.display = 'block';
+                if (gridView) gridView.style.display = 'none';
+            });
+        }
 
         // Filtros
         const filterPills = document.querySelectorAll('.filter-pill');
@@ -1246,32 +1152,18 @@
         const searchInput = document.querySelector('.search-input');
         const clearSearch = document.querySelector('.clear-search');
         
-        searchInput.addEventListener('input', () => {
-            if (searchInput.value.length > 0) {
-                clearSearch.style.display = 'block';
-            } else {
-                clearSearch.style.display = 'none';
-            }
-        });
-        
-        clearSearch.addEventListener('click', () => {
-            searchInput.value = '';
-            clearSearch.style.display = 'none';
-            searchInput.focus();
-        });
-
-        // Usuário demo
-        if (auth.users.length === 0) {
-            auth.users.push({
-                id: 1,
-                name: 'João Silva',
-                email: 'demo@bbh.com',
-                password: '123456',
-                companyName: 'Tech Solutions BR',
-                createdAt: new Date().toISOString()
+        if (searchInput && clearSearch) {
+            searchInput.addEventListener('input', () => {
+                clearSearch.style.display = searchInput.value.length > 0 ? 'block' : 'none';
             });
-            localStorage.setItem('bbh_users', JSON.stringify(auth.users));
+            
+            clearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                clearSearch.style.display = 'none';
+            });
         }
+
+        console.log("✅ Sistema BBH Pronto para uso!");
     </script>
 </body>
 </html>
